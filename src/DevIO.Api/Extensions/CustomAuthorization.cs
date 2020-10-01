@@ -78,7 +78,7 @@ namespace DevIO.Api.Extensions
             //pegando o id do usuario
             string userId = context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            context.Result = new StatusCodeResult(401);
+            //context.Result = new StatusCodeResult(401);
 
         }
 

@@ -55,6 +55,12 @@ namespace DevIO.Api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseCors("Development");
+                
+            }
+            else
+            {
+                app.UseCors("Production");
             }
 
             //Precisa SEMPRE VIR ANTES que o UseMvcConfiguration

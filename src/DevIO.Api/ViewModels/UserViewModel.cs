@@ -37,6 +37,7 @@ namespace DevIO.Api.ViewModels
         public string Password { get; set; }
     }
 
+
     public class UserTokenViewModel
     {
         public string Id { get; set; }

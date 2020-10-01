@@ -2,6 +2,7 @@
 using DevIO.Business.Notificacoes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,10 +16,22 @@ namespace DevIO.Api.Controllers
     {
 
         private readonly INotificador _notificador;
+        public readonly IUser _appUser;
 
-        protected MainAPIController(INotificador notificador)
+        protected Guid UsuarioId { get; set; }
+        protected bool UsuarioAutenticado { get; set; }
+
+        protected MainAPIController(INotificador notificador,
+                                    IUser appUser)
         {
             _notificador = notificador ?? throw new System.ArgumentNullException(nameof(notificador));
+            _appUser = appUser ?? throw new System.ArgumentNullException(nameof(appUser));
+
+            if (_appUser.IsAuthenticated()) {
+                UsuarioId = _appUser.GetUserId();
+                UsuarioAutenticado = true;
+            }
+
         }
 
         //validacao de notificacoes

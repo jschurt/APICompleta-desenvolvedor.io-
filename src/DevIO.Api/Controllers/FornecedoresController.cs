@@ -20,19 +20,24 @@ namespace DevIO.Api.Controllers
         private readonly IFornecedorService _fornecedorService;
         private readonly IFornecedorRepository _fornecedorRepository;
         private readonly IMapper _mapper;
-        private readonly INotificador _notificador;
 
-        public FornecedoresController(IEnderecoRepository enderecoRepository, IFornecedorService fornecedorService, IFornecedorRepository fornecedorRepository, IMapper mapper, INotificador notificador)
-            :base(notificador)
+        public FornecedoresController(IEnderecoRepository enderecoRepository, 
+                                      IFornecedorService fornecedorService, 
+                                      IFornecedorRepository fornecedorRepository, 
+                                      IMapper mapper, 
+                                      INotificador notificador,
+                                      IUser user) : base(notificador, user)
         {
             _enderecoRepository = enderecoRepository ?? throw new ArgumentNullException(nameof(enderecoRepository));
             _fornecedorService = fornecedorService ?? throw new ArgumentNullException(nameof(fornecedorService));
             _fornecedorRepository = fornecedorRepository ?? throw new ArgumentNullException(nameof(fornecedorRepository));
+
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         #region ===== GET Fornecedor ====================================================
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FornecedorViewModel>>> ObterTodos()
         {
@@ -68,6 +73,7 @@ namespace DevIO.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<FornecedorViewModel>> Adicionar(FornecedorViewModel model)
         {
+
             if (!ModelState.IsValid)
                 return CustomResponse(ModelState);
 

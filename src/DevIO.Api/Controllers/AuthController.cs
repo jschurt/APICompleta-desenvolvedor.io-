@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +31,8 @@ namespace DevIO.Api.Controllers
         public AuthController(INotificador notificador, 
                                 SignInManager<IdentityUser> signInManager, 
                                 UserManager<IdentityUser> userManager,
-                                IOptions<MyAppSettings> myAppSettings) : base(notificador)
+                                IOptions<MyAppSettings> myAppSettings,
+                                IUser user) : base(notificador, user)
         {
 
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
@@ -99,7 +101,7 @@ namespace DevIO.Api.Controllers
         /// </summary>
         /// <param name="email"></param>
         /// <returns></returns>
-        private async Task<string> GerarJwt(string email)
+        private async Task<LoginResponseViewModel> GerarJwt(string email)
         {
 
             //Pegando dados do usuario (user, claims, roles)
@@ -142,7 +144,18 @@ namespace DevIO.Api.Controllers
 
             var encodedHandler = tokenHandler.WriteToken(token);
 
-            return encodedHandler;
+            var response = new LoginResponseViewModel
+            {
+                AccessToken = encodedHandler,
+                ExpiresIn = TimeSpan.FromHours(_myAppSettings.ExpiracaoHora).TotalSeconds,
+                UserToken = new UserTokenViewModel { 
+                    Id = user.Id,
+                    Email = user.Email,
+                    Claims = claims.Select(c => new ClaimViewModel { Type = c.Type, Value = c.Value})
+                }
+            };
+
+            return response;
 
         } //GerarJwt
 
