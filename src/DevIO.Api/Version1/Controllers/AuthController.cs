@@ -1,8 +1,10 @@
-﻿using DevIO.Api.Extensions;
+﻿using DevIO.Api.Controllers;
+using DevIO.Api.Extensions;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Intefaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -12,9 +14,14 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DevIO.Api.Controllers
+namespace DevIO.Api.Version1.Controllers
 {
-    [Route("api")]
+
+    //Posso ter a mesma controller suportando mais de uma versao
+    //[ApiVersion("2.0")]
+    //[ApiVersion("1.0", Deprecated = true)]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}")]
     public class AuthController : MainAPIController
     {
 
@@ -24,24 +31,35 @@ namespace DevIO.Api.Controllers
         //Responsavel por criar usuario
         private readonly UserManager<IdentityUser> _userManager;
 
-        //COntem propriedades de configuracao do meu JWT
+        //Contem propriedades de configuracao do meu JWT
         private readonly MyAppSettings _myAppSettings;
 
+        //Log da aplicacao
+        private readonly ILogger _logger;
 
-        public AuthController(INotificador notificador, 
-                                SignInManager<IdentityUser> signInManager, 
+
+        public AuthController(INotificador notificador,
+                                SignInManager<IdentityUser> signInManager,
                                 UserManager<IdentityUser> userManager,
                                 IOptions<MyAppSettings> myAppSettings,
-                                IUser user) : base(notificador, user)
+                                IUser user,
+                                ILogger<AuthController> logger) : base(notificador, user)
         {
 
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
             _myAppSettings = myAppSettings.Value ?? throw new ArgumentNullException(nameof(myAppSettings));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
         }
 
+        /// <summary>
+        /// Registra (cadastra) novo usuario
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("nova-conta")]
-        public async Task<ActionResult> Registrar(RegisterUserViewModel model) 
+        public async Task<ActionResult> Registrar(RegisterUserViewModel model)
         {
 
             if (!ModelState.IsValid)
@@ -71,6 +89,11 @@ namespace DevIO.Api.Controllers
 
         } //Registrar
 
+        /// <summary>
+        /// Login usuario
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns>Se sucesso, retorna o token</returns>
         [HttpPost("login")]
         public async Task<ActionResult> Login(LoginUserViewModel model)
         {
@@ -82,6 +105,7 @@ namespace DevIO.Api.Controllers
 
             if (result.Succeeded)
             {
+                _logger.LogInformation(message: $"Usario {model.Email} logado com sucesso.");
                 return CustomResponse(await GerarJwt(model.Email));
             }
 
@@ -113,7 +137,7 @@ namespace DevIO.Api.Controllers
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
             claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
             //Identificacao do token
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())); 
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
             //Not value before
             claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
             //Data/hora quando o token foi emitido
@@ -148,10 +172,11 @@ namespace DevIO.Api.Controllers
             {
                 AccessToken = encodedHandler,
                 ExpiresIn = TimeSpan.FromHours(_myAppSettings.ExpiracaoHora).TotalSeconds,
-                UserToken = new UserTokenViewModel { 
+                UserToken = new UserTokenViewModel
+                {
                     Id = user.Id,
                     Email = user.Email,
-                    Claims = claims.Select(c => new ClaimViewModel { Type = c.Type, Value = c.Value})
+                    Claims = claims.Select(c => new ClaimViewModel { Type = c.Type, Value = c.Value })
                 }
             };
 

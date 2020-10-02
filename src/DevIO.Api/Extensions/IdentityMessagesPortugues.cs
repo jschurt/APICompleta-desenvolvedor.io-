@@ -2,6 +2,10 @@
 
 namespace DevIO.Api.Extensions
 {
+
+    /// <summary>
+    /// Classe utilizafa para traduzir as mensagens de erro default do identity para portugues (utilizado no IdentityConfig.cs)
+    /// </summary>
     public class IdentityMessagesPortugues : IdentityErrorDescriber
     {
         public override IdentityError DefaultError() { return new IdentityError { Code = nameof(DefaultError), Description = $"Ocorreu um erro desconhecido." }; }

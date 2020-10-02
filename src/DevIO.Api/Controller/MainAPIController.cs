@@ -74,7 +74,7 @@ namespace DevIO.Api.Controllers
 
         } //CustomResponse
 
-        public void NotificarErroModelInvalida(ModelStateDictionary modelState)
+        protected void NotificarErroModelInvalida(ModelStateDictionary modelState)
         {
             var x = modelState.Values.Select(e => e.Errors);
             IEnumerable<ModelError> todosErros = modelState.Values.SelectMany(e => e.Errors);

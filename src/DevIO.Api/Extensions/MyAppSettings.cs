@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace DevIO.Api.Extensions
 {
+    /// <summary>
+    /// Classe que representa os parametros para o JWT. (ver appsettings.json)
+    /// </summary>
     public class MyAppSettings
     {
         /// <summary>
